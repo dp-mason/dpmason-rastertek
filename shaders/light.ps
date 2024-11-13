@@ -1,0 +1,58 @@
+////////////////////////////////////////////////////////////////////////////////
+// Filename: light.ps
+////////////////////////////////////////////////////////////////////////////////
+#version 400
+
+// The input normal vector variable is added here in the pixel shader.
+
+/////////////////////
+// INPUT VARIABLES //
+/////////////////////
+in vec2 texCoord;
+in vec3 normal;
+
+
+//////////////////////
+// OUTPUT VARIABLES //
+//////////////////////
+out vec4 outputColor;
+
+// We have two new uniform variables. These variables are used for sending as input the diffuse color and direction of the light. These two variables will be set from values in the new LightClass object that are then sent in through the LightShaderClass.
+
+///////////////////////
+// UNIFORM VARIABLES //
+///////////////////////
+uniform sampler2D shaderTexture;
+uniform vec3 lightDirection;
+uniform vec4 diffuseLightColor;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pixel Shader
+////////////////////////////////////////////////////////////////////////////////
+void main(void)
+{
+    vec4 textureColor;
+    vec3 lightDir;
+    float lightIntensity;
+
+
+    // Sample the pixel color from the texture using the sampler at this texture coordinate location.
+    textureColor = texture(shaderTexture, texCoord);
+
+    // This is where the lighting equation that was discussed earlier is now implemented. The light intensity value is calculated as the dot product between the normal vector of triangle and the light direction vector. The clamp function that is surrounding the equation is used to keep it in the 0.0f to 1.0f range. We also combine the diffuse light color after the intensity has been calculated by multiplying the two values together and once again clamping them into the 0.0f to 1.0f range.
+
+    // Invert the light direction for calculations.
+    lightDir = -lightDirection;
+
+    // Calculate the amount of light on this pixel.
+    lightIntensity = clamp(dot(normal, lightDir), 0.0f, 1.0f);
+
+    // Determine the final amount of diffuse color based on the diffuse color combined with the light intensity.
+    outputColor =  clamp((diffuseLightColor * lightIntensity), 0.0f, 1.0f);
+
+    // And finally, the diffuse value of the light is combined with the texture pixel value to produce the color result.
+
+    // Multiply the texture pixel and the final diffuse color to get the final pixel color result.
+    outputColor = outputColor * textureColor;
+}
